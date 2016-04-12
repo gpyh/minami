@@ -349,7 +349,7 @@ function linktoExternal(longName, name) {
  * @return {string} The HTML for the navigation sidebar.
  */
 function buildNav(members) {
-    var nav = '<h2><a href="index.html">Home</a></h2>';
+    var nav = '<h2><a href="api.html">API</a></h2>';
     var seen = {};
     var seenTutorials = {};
 
@@ -400,7 +400,7 @@ exports.publish = function(taffyData, opts, tutorials) {
 
     // claim some special filenames in advance, so the All-Powerful Overseer of Filename Uniqueness
     // doesn't try to hand them out later
-    var indexUrl = helper.getUniqueFilename('index');
+    var indexUrl = helper.getUniqueFilename('api');
     // don't call registerLink() on this one! 'index' is also a valid longname
 
     var globalUrl = helper.getUniqueFilename('global');
@@ -585,7 +585,7 @@ exports.publish = function(taffyData, opts, tutorials) {
     var files = find({kind: 'file'});
     var packages = find({kind: 'package'});
 
-    generate('', 'Home',
+    generate('', 'API',
         packages.concat(
             [{kind: 'mainpage', readme: opts.readme, longname: (opts.mainpagetitle) ? opts.mainpagetitle : 'Main Page'}]
         ).concat(files),
