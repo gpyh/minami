@@ -30,7 +30,11 @@ function tutoriallink(tutorial) {
 }
 
 function getAncestorLinks(doclet) {
-    return helper.getAncestorLinks(data, doclet);
+    var ancestors = helper.getAncestorLinks(data, doclet);
+    if(ancestors.length > 0) {
+      ancestors[0] = ancestors[0].replace("module:", "");
+    }
+    return ancestors;
 }
 
 function hashToLink(doclet, hash) {
@@ -185,6 +189,20 @@ function addAttribs(f) {
     f.attribs = util.format('<span class="type-signature">%s</span>', attribsString);
 }
 
+function stripModulePrefix(name) {
+  if(name.indexOf("module:") === 0) {
+    return name.substring(7);
+  }
+  return name;
+}
+
+function addShortname(doc) {
+  if(!doc.shortname) {
+    var tokens = doc.name.split("/");
+    doc.shortname = tokens[tokens.length - 1];
+  }
+}
+
 function shortenPaths(files, commonPrefix) {
     Object.keys(files).forEach(function(file) {
         files[file].shortened = files[file].resolved.replace(commonPrefix, '')
@@ -262,6 +280,9 @@ function attachModuleSymbols(doclets, modules) {
 
     // build a lookup table
     doclets.forEach(function(symbol) {
+      // create a shortname attribute
+        symbol.name = stripModulePrefix(symbol.name);
+        addShortname(symbol);
         symbols[symbol.longname] = symbols[symbol.longname] || [];
         symbols[symbol.longname].push(symbol);
     });
@@ -274,15 +295,7 @@ function attachModuleSymbols(doclets, modules) {
                 .filter(function(symbol) {
                     return symbol.description || symbol.kind === 'class';
                 })
-                .map(function(symbol) {
-                    symbol = doop(symbol);
-
-                    if (symbol.kind === 'class' || symbol.kind === 'function') {
-                        symbol.name = symbol.name.replace('module:', '(require("') + '"))';
-                    }
-
-                    return symbol;
-                });
+                .map(doop);
         }
     });
 }
@@ -301,7 +314,8 @@ function buildMemberNav(items, itemHeading, itemsSeen, linktoFn) {
                 itemsNav += '<li>' + linktoFn('', item.name);
                 itemsNav += '</li>';
             } else if ( !hasOwnProp.call(itemsSeen, item.longname) ) {
-                itemsNav += '<li>' + linktoFn(item.longname, item.name.replace(/^module:/, ''));
+                itemsNav += '<li>' + linktoFn(
+                  item.longname, stripModulePrefix(item.longname));
                 if (methods.length) {
                     itemsNav += "<ul class='methods'>";
 
@@ -349,18 +363,18 @@ function linktoExternal(longName, name) {
  * @return {string} The HTML for the navigation sidebar.
  */
 function buildNav(members) {
-    var nav = '<h2><a href="api.html">API</a></h2>';
+    var nav = '<h2><a href="api-overview.html">API OVERVIEW</a></h2>';
     var seen = {};
     var seenTutorials = {};
-
-    nav += buildMemberNav(members.classes, 'Classes', seen, linkto);
+    
     nav += buildMemberNav(members.modules, 'Modules', {}, linkto);
+    nav += buildMemberNav(members.interfaces, 'Interfaces', seen, linkto);
+    nav += buildMemberNav(members.classes, 'Classes', seen, linkto);
+    nav += buildMemberNav(members.mixins, 'Mixins', seen, linkto);
     nav += buildMemberNav(members.externals, 'Externals', seen, linktoExternal);
     nav += buildMemberNav(members.events, 'Events', seen, linkto);
     nav += buildMemberNav(members.namespaces, 'Namespaces', seen, linkto);
-    nav += buildMemberNav(members.mixins, 'Mixins', seen, linkto);
     nav += buildMemberNav(members.tutorials, 'Tutorials', seenTutorials, linktoTutorial);
-    nav += buildMemberNav(members.interfaces, 'Interfaces', seen, linkto);
 
     if (members.globals.length) {
         var globalNav = '';
@@ -400,7 +414,7 @@ exports.publish = function(taffyData, opts, tutorials) {
 
     // claim some special filenames in advance, so the All-Powerful Overseer of Filename Uniqueness
     // doesn't try to hand them out later
-    var indexUrl = helper.getUniqueFilename('api');
+    var indexUrl = helper.getUniqueFilename('api-overview');
     // don't call registerLink() on this one! 'index' is also a valid longname
 
     var globalUrl = helper.getUniqueFilename('global');
@@ -458,7 +472,8 @@ exports.publish = function(taffyData, opts, tutorials) {
             }
         }
     });
-
+    
+    // create out directory
     fs.mkPath(outdir);
 
     // copy the template's static files to outdir
@@ -564,8 +579,8 @@ exports.publish = function(taffyData, opts, tutorials) {
     view.outputSourceFiles = outputSourceFiles;
 
     // once for all
-    view.nav = buildNav(members);
     attachModuleSymbols( find({ longname: {left: 'module:'} }), members.modules );
+    view.nav = buildNav(members);
 
     // generate the pretty-printed source files first so other pages can link to them
     if (outputSourceFiles) {
