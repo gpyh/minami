@@ -1,5 +1,6 @@
 <?js
-    var params = obj;
+    var caller = obj.caller || ""
+    var params = obj.params || [];
 
     /* sort subparams under their parent params (like opts.classname) */
     var parentParam = null;
@@ -85,7 +86,7 @@
 
             <td class="type">
             <?js if (param.type && param.type.names) {?>
-                <?js= self.partial('type.tmpl', param.type.names) ?>
+                <?js= self.partial('type.tmpl', {names: param.type.names, caller: caller}) ?>
             <?js } ?>
             </td>
 
@@ -113,9 +114,10 @@
                 </td>
             <?js } ?>
 
-            <td class="description last"><?js= param.description ?><?js if (param.subparams) { ?>
+            <td class="description last"><?js= param.description ?><?js if (param.subparams) {
+              ?>
                 <h6>Properties</h6>
-                <?js= self.partial('params.tmpl', param.subparams) ?>
+                <?js= self.partial('params.tmpl', {params: param.subparams, caller: caller}) ?>
             <?js } ?></td>
         </tr>
 

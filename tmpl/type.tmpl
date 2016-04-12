@@ -1,7 +1,10 @@
 <?js
-    var data = obj;
+    var data = obj.names;
     var self = this;
+    var prefix = self.findPrefix(obj.caller);
     data.forEach(function(name, i) { ?>
-<span class="param-type"><?js= self.linkto(name, self.htmlsafe(name)) ?></span>
+<span class="param-type">
+<?js= self.linkto(name, self.htmlsafe(self.stripPrefix(name, prefix))) ?>
+</span>
 <?js if (i < data.length-1) { ?>|<?js } ?>
 <?js }); ?>

@@ -13,7 +13,7 @@ if (data.description) {
         Type
     </dt>
     <dd>
-        <?js= this.partial('type.tmpl', data.type.names) ?>
+        <?js= this.partial('type.tmpl', {names: data.type.names, caller: data.caller}) ?>
     </dd>
 </dl>
 <?js } ?>

@@ -30,7 +30,7 @@ var self = this;
     <h5>Type:</h5>
     <ul>
         <li>
-            <?js= self.partial('type.tmpl', data.type.names) ?>
+            <?js= self.partial('type.tmpl', {names: data.type.names, caller: data.longname}) ?>
         </li>
     </ul>
 <?js } ?>
@@ -42,7 +42,7 @@ var self = this;
 
 <?js if (data.params && params.length) { ?>
     <h5>Parameters:</h5>
-    <?js= this.partial('params.tmpl', params) ?>
+    <?js= this.partial('params.tmpl', {params: params, caller: data.longname}) ?>
 <?js } ?>
 
 <?js= this.partial('details.tmpl', data) ?>
@@ -90,11 +90,15 @@ var self = this;
 <?js if (data.returns && returns.length) { ?>
 <h5>Returns:</h5>
 <?js if (returns.length > 1) { ?><ul><?js
-    returns.forEach(function(r) { ?>
+    returns.forEach(function(r) { 
+      r.caller = data.longname;
+      ?>
         <li><?js= self.partial('returns.tmpl', r) ?></li>
     <?js });
 ?></ul><?js } else {
-    returns.forEach(function(r) { ?>
+    returns.forEach(function(r) {
+      r.caller = data.longname;
+      ?>
         <?js= self.partial('returns.tmpl', r) ?>
     <?js });
 } } ?>

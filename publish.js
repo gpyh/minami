@@ -118,6 +118,7 @@ function buildItemTypeStrings(item) {
     return types;
 }
 
+
 function buildAttribsString(attribs) {
     var attribsString = '';
 
@@ -190,10 +191,7 @@ function addAttribs(f) {
 }
 
 function stripModulePrefix(name) {
-  if(name.indexOf("module:") === 0) {
-    return name.substring(7);
-  }
-  return name;
+  return name.startsWith("module:") ? name.substring(7) : name;
 }
 
 function addShortname(doc) {
@@ -346,6 +344,16 @@ function linktoTutorial(longName, name) {
 
 function linktoExternal(longName, name) {
     return linkto(longName, name.replace(/(^"|"$)/g, ''));
+}
+
+function stripPrefix(name, prefix) {
+  name = name.startsWith(prefix) ? name.substring(prefix.length) : name;
+  return stripModulePrefix(name);
+}
+
+function findPrefix(longname) {
+  var matches = longname ? longname.match(/(.*)[.#~]/) : null;
+  return matches ? matches[1] : longname;
 }
 
 /**
@@ -577,6 +585,8 @@ exports.publish = function(taffyData, opts, tutorials) {
     view.tutoriallink = tutoriallink;
     view.htmlsafe = htmlsafe;
     view.outputSourceFiles = outputSourceFiles;
+    view.findPrefix = findPrefix;
+    view.stripPrefix = stripPrefix;
 
     // once for all
     attachModuleSymbols( find({ longname: {left: 'module:'} }), members.modules );
