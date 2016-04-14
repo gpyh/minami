@@ -194,11 +194,9 @@ function stripModulePrefix(name) {
   return name.startsWith("module:") ? name.substring(7) : name;
 }
 
-function addShortname(doc) {
-  if(!doc.shortname) {
-    var tokens = doc.name.split("/");
-    doc.shortname = tokens[tokens.length - 1];
-  }
+function shortname(doc) {
+  var tokens = doc.name.split("/");
+  return tokens[tokens.length - 1];
 }
 
 function shortenPaths(files, commonPrefix) {
@@ -278,9 +276,6 @@ function attachModuleSymbols(doclets, modules) {
 
     // build a lookup table
     doclets.forEach(function(symbol) {
-      // create a shortname attribute
-        symbol.name = stripModulePrefix(symbol.name);
-        addShortname(symbol);
         symbols[symbol.longname] = symbols[symbol.longname] || [];
         symbols[symbol.longname].push(symbol);
     });
@@ -296,6 +291,18 @@ function attachModuleSymbols(doclets, modules) {
                 .map(doop);
         }
     });
+}
+
+function tidyData(data) {
+  data().each(function(doclet) {
+    doclet.name = stripModulePrefix(doclet.name);
+    doclet.shortname = shortname(doclet);
+  });
+}
+
+function registerMdn(longname) {
+  var id = longname.substring(4);
+  registerLink(longname);
 }
 
 function buildMemberNav(items, itemHeading, itemsSeen, linktoFn) {
@@ -371,7 +378,8 @@ function findPrefix(longname) {
  * @return {string} The HTML for the navigation sidebar.
  */
 function buildNav(members) {
-    var nav = '<h2><a href="api-overview.html">API OVERVIEW</a></h2>';
+    var nav = '<h2><a href="index.html">HOME</a></h2>';
+    nav += '<h2><a href="api-overview.html">API OVERVIEW</a></h2>';
     var seen = {};
     var seenTutorials = {};
     
@@ -589,6 +597,7 @@ exports.publish = function(taffyData, opts, tutorials) {
     view.stripPrefix = stripPrefix;
 
     // once for all
+    tidyData(data)
     attachModuleSymbols( find({ longname: {left: 'module:'} }), members.modules );
     view.nav = buildNav(members);
 
